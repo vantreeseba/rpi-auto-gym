@@ -288,7 +288,7 @@ class TestExerciseClassifier:
     def test_set_auto_completes_after_pause(self):
         classifier = ExerciseClassifier(set_pause_seconds=3.0)
 
-        with patch("classifier.classifier.time.monotonic") as mock_time:
+        with patch("src.classifier.classifier.time.monotonic") as mock_time:
             mock_time.return_value = 0.0
 
             # Perform 2 squat reps

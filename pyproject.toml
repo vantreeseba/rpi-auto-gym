@@ -1,3 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "rpi-auto-gym"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "opencv-python",
+]
+
+[project.optional-dependencies]
+mediapipe = ["mediapipe"]
+coral = ["ai-edge-litert"]
+hailo = []  # installed via system packages, see README
+
+[project.scripts]
+rpi-auto-gym = "src.main:main"
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["src/pose/tests"]
+testpaths = ["src"]

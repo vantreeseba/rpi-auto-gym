@@ -1,5 +1,6 @@
 import threading
 import time
+from typing import Optional
 
 from .classifier_types import ClassifierResult
 from .types import ExerciseLog, SessionState
@@ -10,7 +11,7 @@ class Session:
         self._lock = threading.Lock()
         self._start_time = time.monotonic()
         self._exercises: dict[str, ExerciseLog] = {}
-        self._active_exercise: str | None = None
+        self._active_exercise: Optional[str] = None
         self._current_rep_count: int = 0
         self._last_set_count: int = 0
         self._last_rep_count: int = 0

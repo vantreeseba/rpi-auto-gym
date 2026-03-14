@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 
 import tkinter as tk
 
@@ -91,9 +91,9 @@ class DebugOverlay(tk.Toplevel):
         self._canvas.pack(fill=tk.BOTH, expand=True)
 
         # Keep a reference to prevent garbage collection
-        self._photo: "ImageTk.PhotoImage | None" = None
+        self._photo: "Optional[ImageTk.PhotoImage]" = None
 
-    def update_frame(self, frame: "np.ndarray", pose: "Pose | None") -> None:
+    def update_frame(self, frame: "np.ndarray", pose: "Optional[Pose]") -> None:
         """Draw frame + skeleton and update the canvas. frame is RGB uint8."""
         rendered = _draw_skeleton(frame, pose) if pose is not None else frame.copy()
 

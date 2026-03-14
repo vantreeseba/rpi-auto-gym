@@ -1,5 +1,6 @@
 import threading
 import time
+from typing import Optional
 from unittest.mock import patch
 
 import pytest
@@ -9,8 +10,8 @@ from src.session.classifier_types import ClassifierResult
 
 
 def make_result(
-    exercise: str | None = "squat",
-    phase: str | None = "down",
+    exercise: Optional[str] = "squat",
+    phase: Optional[str] = "down",
     rep_count: int = 0,
     set_count: int = 0,
 ) -> ClassifierResult:

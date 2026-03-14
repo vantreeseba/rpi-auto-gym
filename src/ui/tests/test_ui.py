@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,7 +8,7 @@ from src.ui import WorkoutApp
 from src.ui.session_types import ExerciseLog, SessionState
 
 
-def _make_mock_session(state: SessionState | None = None) -> MagicMock:
+def _make_mock_session(state: Optional[SessionState] = None) -> MagicMock:
     """Return a mock session that returns the given state from get_state()."""
     mock = MagicMock()
     mock.get_state.return_value = state or SessionState()

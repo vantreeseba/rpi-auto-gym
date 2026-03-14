@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
@@ -50,7 +50,7 @@ class MediaPipePoseEstimator(PoseEstimator):
         self._vision = vision
         self._min_confidence = min_confidence
 
-    def estimate(self, frame: np.ndarray) -> Pose | None:
+    def estimate(self, frame: np.ndarray) -> Optional[Pose]:
         mp_image = self._vision.Image(
             image_format=self._vision.ImageFormat.SRGB,
             data=frame,

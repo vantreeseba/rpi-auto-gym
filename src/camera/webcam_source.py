@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from typing import Optional
 
 from .base import CameraSource
 
@@ -9,7 +10,7 @@ class WebcamSource(CameraSource):
 
     def __init__(self, index: int = 0) -> None:
         self._index = index
-        self._cap: cv2.VideoCapture | None = None
+        self._cap: Optional[cv2.VideoCapture] = None
         self._last_frame: np.ndarray = np.zeros((480, 640, 3), dtype=np.uint8)
 
     def start(self) -> None:

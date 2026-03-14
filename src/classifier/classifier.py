@@ -1,4 +1,6 @@
 import time
+from typing import Optional
+
 from .types import ClassifierResult
 from .pose_types import Pose
 from .exercises.squat import SquatDetector
@@ -13,11 +15,11 @@ class ExerciseClassifier:
         self._pushup = PushupDetector()
         self._jumping_jack = JumpingJackDetector()
 
-        self._active_exercise: str | None = None
-        self._active_phase: str | None = None
+        self._active_exercise: Optional[str] = None
+        self._active_phase: Optional[str] = None
         self._rep_count = 0
         self._set_count = 0
-        self._last_rep_time: float | None = None
+        self._last_rep_time: Optional[float] = None
 
     def update(self, pose: Pose) -> ClassifierResult:
         self._maybe_complete_set()
@@ -69,7 +71,7 @@ class ExerciseClassifier:
 
     def _current_phase(
         self, squat_phase: str, pushup_phase: str, jj_phase: str
-    ) -> str | None:
+    ) -> Optional[str]:
         if self._active_exercise == "squat":
             return squat_phase
         if self._active_exercise == "pushup":

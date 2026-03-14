@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 import numpy as np
 
@@ -28,7 +29,7 @@ class HailoPoseEstimator(PoseEstimator):
         self._min_confidence = min_confidence
         self._hailo_platform = __import__("hailo_platform")
 
-    def estimate(self, frame: np.ndarray) -> Pose | None:
+    def estimate(self, frame: np.ndarray) -> Optional[Pose]:
         try:
             import hailo_platform  # type: ignore[import-untyped]
         except ImportError as exc:
@@ -67,7 +68,7 @@ class HailoPoseEstimator(PoseEstimator):
         detections: np.ndarray,
         frame_height: int,
         frame_width: int,
-    ) -> Pose | None:
+    ) -> Optional[Pose]:
         if detections is None or len(detections) == 0:
             return None
 

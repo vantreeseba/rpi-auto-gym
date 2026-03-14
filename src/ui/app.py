@@ -1,6 +1,7 @@
 import os
 import sys
 import tkinter as tk
+from typing import Optional, Union
 
 from ._headless import FakeLabel
 from .session_protocol import SessionProtocol
@@ -32,12 +33,12 @@ class WorkoutApp:
         self._headless = _is_headless()
 
         if self._headless:
-            self._root: tk.Tk | None = None
-            self._elapsed_label: FakeLabel | tk.Label = FakeLabel("0:00")
-            self._exercise_label: FakeLabel | tk.Label = FakeLabel("—")
-            self._rep_label: FakeLabel | tk.Label = FakeLabel("0")
-            self._set_label: FakeLabel | tk.Label = FakeLabel("Set 0")
-            self._history_label: FakeLabel | tk.Label = FakeLabel("")
+            self._root: Optional[tk.Tk] = None
+            self._elapsed_label: Union[FakeLabel, tk.Label] = FakeLabel("0:00")
+            self._exercise_label: Union[FakeLabel, tk.Label] = FakeLabel("—")
+            self._rep_label: Union[FakeLabel, tk.Label] = FakeLabel("0")
+            self._set_label: Union[FakeLabel, tk.Label] = FakeLabel("Set 0")
+            self._history_label: Union[FakeLabel, tk.Label] = FakeLabel("")
             return
 
         self._root = tk.Tk()

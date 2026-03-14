@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 import numpy as np
 
@@ -24,7 +25,7 @@ class CoralPoseEstimator(PoseEstimator):
         self._min_confidence = min_confidence
         self._common = common
 
-    def estimate(self, frame: np.ndarray) -> Pose | None:
+    def estimate(self, frame: np.ndarray) -> Optional[Pose]:
         try:
             from ai_edge_litert.interpreter import Interpreter as _
         except ImportError as exc:

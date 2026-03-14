@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
@@ -9,7 +10,7 @@ class ExerciseLog:
 
 @dataclass
 class SessionState:
-    active_exercise: str | None = None
+    active_exercise: Optional[str] = None
     current_rep_count: int = 0
     exercises: dict[str, ExerciseLog] = field(default_factory=dict)
     elapsed_seconds: float = 0.0

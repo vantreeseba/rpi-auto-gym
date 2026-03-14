@@ -33,6 +33,7 @@ BLAZEPOSE_TO_COCO: dict[str, int] = {
 class MediaPipePoseEstimator(PoseEstimator):
     def __init__(self, model_path: str, min_confidence: float = 0.5) -> None:
         try:
+            import mediapipe as mp
             from mediapipe.tasks import python as mp_tasks
             from mediapipe.tasks.python import vision
         except ImportError as exc:
@@ -47,12 +48,12 @@ class MediaPipePoseEstimator(PoseEstimator):
             output_segmentation_masks=False,
         )
         self._landmarker = vision.PoseLandmarker.create_from_options(options)
-        self._vision = vision
+        self._mp = mp
         self._min_confidence = min_confidence
 
     def estimate(self, frame: np.ndarray) -> Optional[Pose]:
-        mp_image = self._vision.Image(
-            image_format=self._vision.ImageFormat.SRGB,
+        mp_image = self._mp.Image(
+            image_format=self._mp.ImageFormat.SRGB,
             data=frame,
         )
         result = self._landmarker.detect(mp_image)

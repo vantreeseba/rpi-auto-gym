@@ -62,6 +62,8 @@ def _build_mediapipe_stub() -> None:
 
     tasks_mod.python = python_mod  # type: ignore[attr-defined]
     mediapipe_mod.tasks = tasks_mod  # type: ignore[attr-defined]
+    mediapipe_mod.Image = Image  # type: ignore[attr-defined]
+    mediapipe_mod.ImageFormat = ImageFormat  # type: ignore[attr-defined]
 
     sys.modules["mediapipe"] = mediapipe_mod
     sys.modules["mediapipe.tasks"] = tasks_mod

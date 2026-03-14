@@ -1,7 +1,7 @@
 import os
 import sys
 import tkinter as tk
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from ._headless import FakeLabel
 from .session_protocol import SessionProtocol
@@ -31,6 +31,7 @@ class WorkoutApp:
     def __init__(self, session: SessionProtocol) -> None:
         self._session = session
         self._headless = _is_headless()
+        self._debug_overlay: Optional[Any] = None
 
         if self._headless:
             self._root: Optional[tk.Tk] = None
@@ -77,6 +78,18 @@ class WorkoutApp:
         )
         self._history_label.grid(row=5, column=0, pady=(16, 8), padx=16, sticky="w")
 
+        root.bind("<KeyPress-d>", self._toggle_debug)
+
+    def _toggle_debug(self, event=None) -> None:
+        """Open or close the debug overlay window."""
+        if self._debug_overlay is None or not self._debug_overlay.winfo_exists():
+            from .debug_overlay import DebugOverlay  # lazy: avoids hard dep at import time
+            assert self._root is not None
+            self._debug_overlay = DebugOverlay(self._root)
+        else:
+            self._debug_overlay.destroy()
+            self._debug_overlay = None
+
     def run(self) -> None:
         """Start the tkinter mainloop. In headless mode returns immediately."""
         if self._headless:
@@ -94,6 +107,9 @@ class WorkoutApp:
         assert self._root is not None
         state = self._session.get_state()
         self._update_display(state)
+        if self._debug_overlay is not None and self._debug_overlay.winfo_exists():
+            if state.last_frame is not None:
+                self._debug_overlay.update_frame(state.last_frame, state.last_pose)
         self._root.after(self.POLL_MS, self._poll)
 
     def _update_display(self, state: SessionState) -> None:

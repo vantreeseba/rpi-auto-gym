@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Optional
+from typing import Any, Optional
 
 from .classifier_types import ClassifierResult
 from .types import ExerciseLog, SessionState
@@ -15,6 +15,14 @@ class Session:
         self._current_rep_count: int = 0
         self._last_set_count: int = 0
         self._last_rep_count: int = 0
+        self._last_frame: Optional[Any] = None
+        self._last_pose: Optional[Any] = None
+
+    def update_frame(self, frame: Any, pose: Optional[Any]) -> None:
+        """Thread-safe. Stores the latest camera frame and pose for the debug overlay."""
+        with self._lock:
+            self._last_frame = frame
+            self._last_pose = pose
 
     def update(self, result: ClassifierResult) -> SessionState:
         """Thread-safe. Updates internal state from classifier output and returns current SessionState."""
@@ -41,6 +49,8 @@ class Session:
             self._current_rep_count = 0
             self._last_set_count = 0
             self._last_rep_count = 0
+            self._last_frame = None
+            self._last_pose = None
             self._start_time = time.monotonic()
 
     def get_state(self) -> SessionState:
@@ -55,4 +65,6 @@ class Session:
             current_rep_count=self._current_rep_count,
             exercises={name: ExerciseLog(log.sets, log.total_reps) for name, log in self._exercises.items()},
             elapsed_seconds=time.monotonic() - self._start_time,
+            last_frame=self._last_frame,
+            last_pose=self._last_pose,
         )

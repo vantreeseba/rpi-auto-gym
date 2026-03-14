@@ -36,6 +36,7 @@ def capture_loop(camera, estimator, classifier, session, stop_event: threading.E
         while not stop_event.is_set():
             frame = camera.read()
             pose = estimator.estimate(frame)
+            session.update_frame(frame, pose)
             if pose is not None:
                 result = classifier.update(pose)
                 session.update(result)

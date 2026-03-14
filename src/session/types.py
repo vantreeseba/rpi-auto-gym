@@ -1,16 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Optional
+# Re-export from the canonical definition to avoid duplication.
+# Both the session layer and the UI protocol share the same SessionState type.
+from src.ui.session_types import ExerciseLog, SessionState
 
-
-@dataclass
-class ExerciseLog:
-    sets: int = 0
-    total_reps: int = 0
-
-
-@dataclass
-class SessionState:
-    active_exercise: Optional[str] = None
-    current_rep_count: int = 0
-    exercises: dict[str, ExerciseLog] = field(default_factory=dict)
-    elapsed_seconds: float = 0.0
+__all__ = ["ExerciseLog", "SessionState"]

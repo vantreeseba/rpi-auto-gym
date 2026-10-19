@@ -1,4 +1,5 @@
 import os
+import queue
 import sys
 import tkinter as tk
 from typing import Any, Optional, Union
@@ -7,12 +8,20 @@ from ._headless import FakeLabel
 from .session_protocol import SessionProtocol
 from .session_types import SessionState
 
-_BG = "#000000"
-_FG = "#FFFFFF"
-_FONT_EXERCISE = ("Helvetica", 48, "bold")
-_FONT_REPS = ("Helvetica", 120, "bold")
-_FONT_SET = ("Helvetica", 36)
-_FONT_SMALL = ("Helvetica", 18)
+# Base font sizes, multiplied by AUTOGYM_UI_FONT_SCALE.
+_SIZE_EXERCISE = 48
+_SIZE_REPS = 120
+_SIZE_SET = 36
+_SIZE_SMALL = 18
+
+# Keyboard shortcuts (handy in windowed/dev mode, like zynthian's emulator keys).
+KEY_BINDINGS = {
+    "d": "toggle_debug",
+    "r": "reset_session",
+    "F11": "toggle_fullscreen",
+    "q": "stop",
+    "Escape": "stop",
+}
 
 
 def _format_exercise_name(raw: str) -> str:
@@ -24,14 +33,29 @@ def _is_headless() -> bool:
 
 
 class WorkoutApp:
-    """Workout display app. Headless-safe: skips Tk when DISPLAY is unset."""
+    """Workout display app. Headless-safe: skips Tk when DISPLAY is unset.
+
+    ``cfg`` is a ``src.config.Config`` (defaults are used when omitted).
+    ``control`` is a ``src.control.AppControl``; when given, the app runs the
+    UI commands it queues (from the web interface) and routes key presses to it.
+    """
 
     POLL_MS = 100
 
-    def __init__(self, session: SessionProtocol) -> None:
+    def __init__(self, session: SessionProtocol, cfg: Optional[Any] = None,
+                 control: Optional[Any] = None) -> None:
+        if cfg is None:
+            from ..config import Config
+            cfg = Config({})
         self._session = session
+        self._cfg = cfg
+        self._control = control
         self._headless = _is_headless()
         self._debug_overlay: Optional[Any] = None
+        self._bg = cfg.get("AUTOGYM_UI_COLOR_BG")
+        self._fg = cfg.get("AUTOGYM_UI_COLOR_TX")
+        self._hl = cfg.get("AUTOGYM_UI_COLOR_HL")
+        self._fullscreen = cfg.get_bool("AUTOGYM_UI_FULLSCREEN")
 
         if self._headless:
             self._root: Optional[tk.Tk] = None
@@ -44,9 +68,27 @@ class WorkoutApp:
 
         self._root = tk.Tk()
         self._root.title("Auto Gym")
-        self._root.configure(bg=_BG)
-        self._root.attributes("-fullscreen", True)
+        self._root.configure(bg=self._bg)
+        if self._fullscreen:
+            self._root.attributes("-fullscreen", True)
+        else:
+            w = cfg.get_int("AUTOGYM_UI_WIDTH")
+            h = cfg.get_int("AUTOGYM_UI_HEIGHT")
+            self._root.geometry(f"{w}x{h}")
+        if cfg.get_bool("AUTOGYM_UI_HIDE_CURSOR"):
+            self._root.configure(cursor="none")
         self._build_layout()
+        if cfg.get_bool("AUTOGYM_UI_SHOW_DEBUG"):
+            self._root.after(500, self._toggle_debug)
+
+    @property
+    def headless(self) -> bool:
+        return self._headless
+
+    def _font(self, size: int, bold: bool = False) -> tuple:
+        scaled = max(6, int(size * self._cfg.get_float("AUTOGYM_UI_FONT_SCALE")))
+        family = self._cfg.get("AUTOGYM_UI_FONT_FAMILY")
+        return (family, scaled, "bold") if bold else (family, scaled)
 
     def _build_layout(self) -> None:
         """Construct all label widgets in landscape workout layout."""
@@ -54,31 +96,47 @@ class WorkoutApp:
         root = self._root
         root.columnconfigure(0, weight=1)
 
-        top_bar = tk.Frame(root, bg=_BG)
+        bg, fg = self._bg, self._fg
+        top_bar = tk.Frame(root, bg=bg)
         top_bar.grid(row=0, column=0, sticky="ew", padx=16, pady=(8, 0))
         top_bar.columnconfigure(0, weight=1)
         self._elapsed_label = tk.Label(
-            top_bar, text="0:00", font=_FONT_SMALL, bg=_BG, fg=_FG, anchor="e"
+            top_bar, text="0:00", font=self._font(_SIZE_SMALL), bg=bg, fg=fg, anchor="e"
         )
         self._elapsed_label.grid(row=0, column=0, sticky="e")
 
-        self._exercise_label = tk.Label(root, text="—", font=_FONT_EXERCISE, bg=_BG, fg=_FG)
+        self._exercise_label = tk.Label(root, text="—", font=self._font(_SIZE_EXERCISE, True), bg=bg, fg=fg)
         self._exercise_label.grid(row=1, column=0, pady=(24, 0))
 
-        self._rep_label = tk.Label(root, text="0", font=_FONT_REPS, bg=_BG, fg=_FG)
+        self._rep_label = tk.Label(root, text="0", font=self._font(_SIZE_REPS, True), bg=bg, fg=self._hl)
         self._rep_label.grid(row=2, column=0)
 
-        tk.Label(root, text="REPS", font=_FONT_SMALL, bg=_BG, fg=_FG).grid(row=3, column=0)
+        tk.Label(root, text="REPS", font=self._font(_SIZE_SMALL), bg=bg, fg=fg).grid(row=3, column=0)
 
-        self._set_label = tk.Label(root, text="Set 0", font=_FONT_SET, bg=_BG, fg=_FG)
+        self._set_label = tk.Label(root, text="Set 0", font=self._font(_SIZE_SET), bg=bg, fg=fg)
         self._set_label.grid(row=4, column=0, pady=(8, 0))
 
         self._history_label = tk.Label(
-            root, text="", font=_FONT_SMALL, bg=_BG, fg=_FG, justify="left"
+            root, text="", font=self._font(_SIZE_SMALL), bg=bg, fg=fg, justify="left"
         )
         self._history_label.grid(row=5, column=0, pady=(16, 8), padx=16, sticky="w")
 
-        root.bind("<KeyPress-d>", self._toggle_debug)
+        for key, action in KEY_BINDINGS.items():
+            root.bind(f"<KeyPress-{key}>", lambda _e, a=action: self.handle_action(a))
+    def handle_action(self, action: str) -> None:
+        """Run a UI action from a key press or the control API."""
+        if action == "toggle_debug":
+            self._toggle_debug()
+        elif action == "toggle_fullscreen":
+            self._fullscreen = not self._fullscreen
+            if self._root is not None:
+                self._root.attributes("-fullscreen", self._fullscreen)
+        elif action == "quit":
+            self.destroy()
+        elif self._control is not None:
+            self._control.perform(action)  # reset_session / stop / restart
+        elif action == "stop":
+            self.destroy()
 
     def _toggle_debug(self, event=None) -> None:
         """Open or close the debug overlay window."""
@@ -101,10 +159,20 @@ class WorkoutApp:
     def destroy(self) -> None:
         if self._root is not None:
             self._root.destroy()
+            self._root = None
 
     def _poll(self) -> None:
         """Read session state, update display, then reschedule."""
         assert self._root is not None
+        if self._control is not None:
+            while True:
+                try:
+                    command = self._control.ui_commands.get_nowait()
+                except queue.Empty:
+                    break
+                self.handle_action(command)
+                if command == "quit":
+                    return
         state = self._session.get_state()
         self._update_display(state)
         if self._debug_overlay is not None and self._debug_overlay.winfo_exists():

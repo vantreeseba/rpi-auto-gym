@@ -13,3 +13,4 @@ venv/
 *.tflite
 *.hef
 models/
+.dev-config/

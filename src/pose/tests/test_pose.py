@@ -231,8 +231,8 @@ class TestMakeEstimator:
         with pytest.raises(ValueError, match="Unknown backend"):
             make_estimator("unknown_backend", model_path="fake.task")
 
-    def test_coral_raises_not_implemented_without_pycoral(self) -> None:
-        with pytest.raises(NotImplementedError, match="pycoral"):
+    def test_coral_raises_not_implemented_without_litert(self) -> None:
+        with pytest.raises(NotImplementedError, match="ai-edge-litert"):
             make_estimator("coral", model_path="fake.tflite")
 
     def test_hailo_raises_not_implemented_without_hailort(self) -> None:

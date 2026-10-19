@@ -32,7 +32,7 @@ Without an accelerator, pose estimation runs on CPU via MediaPipe. Adding hardwa
 
 | Accelerator | Pose Models | Python Packages | Notes |
 |-------------|-------------|-----------------|-------|
-| Google Coral TPU (USB or M.2) | PoseNet, MoveNet | `python3-pycoral` (apt), `ai-edge-litert` | `pycoral` archived July 2025; official support ends at Python 3.9. Use pyenv or Docker on Bookworm. |
+| Google Coral TPU (USB or M.2) | PoseNet, MoveNet | `libedgetpu1-std` (apt), `ai-edge-litert` | Uses ai-edge-litert + the Edge TPU plugin, so no pycoral (which stops at Python 3.9). |
 | Hailo AI Hat+ | YOLO v8/v11 pose | `hailort` (wheel), `hailo_tappas_core_python_binding` (wheel) | Tested with HailoRT + PCIe driver 4.23 and TAPPAS Core 5.1.0. Install via the official RPi AI HAT+ guide (`hailo-all` apt meta-package). |
 | None (CPU) | MediaPipe BlazePose | `mediapipe` | No official aarch64 wheel from v0.10.10 onward; works in practice on RPi OS Bookworm 64-bit inside a venv (Python 3.9–3.12). |
 
@@ -54,7 +54,7 @@ Without an accelerator, pose estimation runs on CPU via MediaPipe. Adding hardwa
 | UI | tkinter (stdlib) |
 | Camera | `picamera2` (RPi cam), `opencv-python` (webcam / frame drawing) |
 | Pose — CPU | `mediapipe` (Tasks API, BlazePose) |
-| Pose — Coral | `python3-pycoral` + `ai-edge-litert` |
+| Pose — Coral | `libedgetpu1-std` + `ai-edge-litert` |
 | Pose — Hailo | `hailort` + `hailo_tappas_core_python_binding` |
 | Exercise classification | Rules-based heuristics (v1); LSTM/1D-CNN upgrade path in v2 |
 
@@ -176,18 +176,26 @@ wget -q -O models/pose_landmarker_lite.task \
 
 ### 6. (Optional) Coral TPU
 
-```bash
-# Add Google's APT repo and install pycoral
-echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" \
-  | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-sudo apt update
-sudo apt install -y libedgetpu1-std python3-pycoral
+`scripts/setup_pi.sh --coral` does all of this.
 
-pip install ai-edge-litert
+```bash
+# Add Google's APT repo and install the Edge TPU runtime
+curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+  | sudo gpg --dearmor -o /usr/share/keyrings/coral-edgetpu.gpg
+echo "deb [signed-by=/usr/share/keyrings/coral-edgetpu.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" \
+  | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list
+sudo apt update
+sudo apt install -y libedgetpu1-std
+
+pip install -e .[coral]   # ai-edge-litert
+wget -O models/movenet_lightning_edgetpu.tflite \
+  https://github.com/google-coral/test_data/raw/master/movenet_single_pose_lightning_ptq_edgetpu.tflite
 ```
 
-> **Python version note:** `pycoral` officially supports Python ≤ 3.9. On Bookworm (Python 3.11/3.12), use `pyenv` to install Python 3.9 and create your venv with that interpreter, or use the Docker approach documented on the [bret.dk guide](https://bret.dk/installing-pycoral-for-google-coral-on-raspberry-pi-5/).
+> The Coral backend uses `ai-edge-litert` with the Edge TPU plugin (`libedgetpu.so.1`), not
+> `pycoral`, so it works on Bookworm's Python 3.11. If the plugin fails to load, unplug and replug
+> a USB Coral after installing. If it still fails, the newer runtime may not work with Google's old
+> `libedgetpu1-std`; community builds of libedgetpu (e.g. feranick/libedgetpu) are the usual fix.
 
 ### 7. (Optional) Hailo AI Hat+
 

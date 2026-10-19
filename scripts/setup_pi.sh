@@ -140,7 +140,7 @@ if [[ $CORAL == 1 ]]; then
 	if [[ ! -f "$REPO_DIR/models/movenet_lightning_edgetpu.tflite" ]]; then
 		run wget -q -O "$REPO_DIR/models/movenet_lightning_edgetpu.tflite" "$CORAL_MODEL_URL"
 	fi
-	echo "    Note: pycoral officially stops at Python 3.9; see the README if Coral fails to load."
+	echo "    Note: a USB Coral may need unplugging and replugging before it is picked up."
 fi
 
 if [[ $HAILO == 1 ]]; then

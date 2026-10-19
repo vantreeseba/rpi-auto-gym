@@ -55,6 +55,14 @@ input[type=color] { width: 60px; height: 32px; background: none; border: 1px sol
   padding: 12px 0; background: var(--bg); border-top: 1px solid var(--line); }
 pre#logs { background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto;
   max-height: 75vh; font: 12px/1.45 ui-monospace, monospace; white-space: pre-wrap; }
+.problems { margin: 0 0 12px; padding-left: 18px; color: var(--warn); }
+.problems:empty { display: none; }
+#hw-recommended { overflow-wrap: anywhere; }
+details { margin-top: 12px; }
+summary { cursor: pointer; }
+.preset { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--line); }
+.preset p { margin: 2px 0 0; font-size: 13px; }
 @media (max-width: 640px) {
   .field { grid-template-columns: 1fr; }
   .field .help, .field .err { grid-column: 1; }

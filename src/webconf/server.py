@@ -23,7 +23,7 @@ from typing import Any, Dict, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 from .. import config as conf
-from .. import netinfo
+from .. import hardware, netinfo
 from ..control import ACTIONS
 
 log = logging.getLogger("autogym.webconf")
@@ -89,6 +89,17 @@ def info() -> Dict[str, Any]:
         "platform": platform.platform(),
         "config_path": str(conf.envars_path()),
         "log_path": str(conf.log_path()),
+    }
+
+
+def hardware_report() -> Dict[str, Any]:
+    detected = hardware.detect()
+    return {
+        "detected": detected.to_dict(),
+        "recommended": hardware.recommend(detected),
+        "problems": hardware.problems(detected, file_values()),
+        "presets": [{"id": p.id, "name": p.name, "description": p.description, "settings": p.settings}
+                    for p in hardware.presets()],
     }
 
 
@@ -172,6 +183,8 @@ class Handler(BaseHTTPRequestHandler):
                              "file_exists": conf.envars_path().is_file()})
         elif route == "/api/info":
             self._json(200, info())
+        elif route == "/api/hardware":
+            self._json(200, hardware_report())
         elif route == "/api/state":
             code, body, ctype = app_request("GET", "/state")
             self._send(code, body, ctype)
@@ -196,6 +209,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         if route == "/api/config":
             self._save_config(body)
+        elif route == "/api/hardware/apply":
+            self._apply_preset(body)
         elif route.startswith("/api/action/"):
             name = route[len("/api/action/"):]
             if name not in ACTIONS:
@@ -205,6 +220,18 @@ class Handler(BaseHTTPRequestHandler):
             self._send(code, resp, ctype)
         else:
             self._json(404, {"error": "not found"})
+
+    def _apply_preset(self, body: Dict[str, Any]) -> None:
+        preset_id = body.get("preset", "")
+        if preset_id == "recommended":
+            settings = hardware.recommend(hardware.detect())
+        else:
+            preset = hardware.preset_by_id(preset_id)
+            if preset is None:
+                self._json(400, {"error": f"unknown preset '{preset_id}'"})
+                return
+            settings = preset.settings
+        self._save_config({"values": settings, "restart": body.get("restart", False)})
 
     def _save_config(self, body: Dict[str, Any]) -> None:
         submitted = dict(body.get("values") or {})

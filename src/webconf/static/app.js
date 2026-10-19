@@ -80,6 +80,35 @@ async function loadInfo() {
   $("#info").innerHTML = Object.entries(rows).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
 }
 
+async function loadHardware() {
+  const { body } = await api("/api/hardware");
+  const d = body.detected;
+  const rows = {
+    "Pi model": d.pi_model || "not a Pi",
+    "Pi camera": d.picameras.join(", ") || "none",
+    Webcams: d.webcams.map(([i, n]) => `${i}: ${n}`).join(", ") || "none",
+    Hailo: d.hailo || "none",
+    Coral: d.coral || "none",
+  };
+  $("#hw-detected").innerHTML = Object.entries(rows).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  $("#hw-problems").innerHTML = body.problems.map((p) => `<li>${p}</li>`).join("");
+  $("#hw-recommended").textContent = Object.entries(body.recommended)
+    .map(([k, v]) => `${k.replace("AUTOGYM_", "")}=${v}`).join(", ");
+  $("#hw-presets").innerHTML = body.presets.map((p) =>
+    `<div class="preset"><div>${p.name}<p class="muted">${p.description}</p></div>
+     <button data-preset="${p.id}">Apply</button></div>`).join("");
+  document.querySelectorAll("[data-preset]").forEach((b) =>
+    b.addEventListener("click", () => applyPreset(b.dataset.preset)));
+}
+
+async function applyPreset(preset) {
+  if (!confirm("Apply these settings and restart the app?")) return;
+  const { ok, body } = await post("/api/hardware/apply", { preset, restart: true });
+  if (!ok) return alert(body.error || Object.values(body.errors || {}).join("\n") || "Failed");
+  await Promise.all([loadSettings(), loadHardware()]);
+}
+$("#hw-apply").addEventListener("click", () => applyPreset("recommended"));
+
 // ---- settings ---------------------------------------------------------------
 function inputFor(s, value) {
   let el;
@@ -175,6 +204,7 @@ setInterval(() => activeTab === "logs" && $("#logs-follow").checked && loadLogs(
 
 // ---- start ------------------------------------------------------------------
 loadInfo();
+loadHardware();
 loadSettings();
 pollState();
 setInterval(pollState, 1000);

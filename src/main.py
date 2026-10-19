@@ -24,7 +24,7 @@ from .classifier.classifier import ExerciseClassifier
 from .classifier.exercises.jumping_jack import JumpingJackDetector
 from .classifier.exercises.pushup import PushupDetector
 from .classifier.exercises.squat import SquatDetector
-from . import display
+from . import display, hardware
 from .config import EXIT_ERROR, Config, envars_path, repo_dir, setup_logging
 from .control import AppControl, start_control_server
 from .pose.factory import make_estimator
@@ -130,6 +130,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     except Exception:
         log.exception("Startup failed")
         return EXIT_ERROR
+
+    for problem in hardware.problems(hardware.detect(), cfg.raw):
+        log.warning("Hardware check: %s", problem)
 
     display.apply_rotation(cfg.get("AUTOGYM_DISPLAY_ROTATION"), cfg.get("AUTOGYM_DISPLAY_OUTPUT"))
     if cfg.get("AUTOGYM_DISPLAY_BLANK_MODE") == "off" and cfg.get_int("AUTOGYM_DISPLAY_BLANK_SECONDS") > 0:

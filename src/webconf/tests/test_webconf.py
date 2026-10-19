@@ -87,6 +87,21 @@ def test_password(web) -> None:
     assert conf.read_envars_file()["AUTOGYM_WEB_PASSWORD"] == "s3cret"
 
 
+def test_hardware_report_and_apply(web) -> None:
+    status, body = call(web + "/api/hardware")
+    report = json.loads(body)
+    assert status == 200
+    assert {"detected", "recommended", "problems", "presets"} <= set(report)
+
+    status, body = call(web + "/api/hardware/apply", {"preset": "coral"})
+    assert status == 200
+    values = conf.read_envars_file()
+    assert values["AUTOGYM_POSE_BACKEND"] == "coral"
+
+    status, _ = call(web + "/api/hardware/apply", {"preset": "nope"})
+    assert status == 400
+
+
 def test_info_lists_web_urls(web) -> None:
     status, body = call(web + "/api/info")
     assert status == 200 and json.loads(body)["web_urls"][0].endswith(":8080")

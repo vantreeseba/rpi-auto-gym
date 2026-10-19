@@ -29,8 +29,10 @@ class PiCameraSource(CameraSource):
         if self._camera is None:
             raise RuntimeError("PiCameraSource.start() must be called before read()")
 
+        # picamera2's "RGB888" is stored as B, G, R per pixel (libcamera naming),
+        # so flip it to the RGB order the rest of the app expects.
         frame = self._camera.capture_array()
-        return frame.astype(np.uint8)
+        return np.ascontiguousarray(frame[..., 2::-1], dtype=np.uint8)
 
     def stop(self) -> None:
         if self._camera is not None:

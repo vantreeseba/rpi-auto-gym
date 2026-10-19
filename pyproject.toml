@@ -19,11 +19,15 @@ hailo = []  # installed via system packages, see README
 
 [project.scripts]
 rpi-auto-gym = "src.main:main"
+rpi-auto-gym-web = "src.webconf.__main__:main"
 
 [tool.setuptools.packages.find]
 # The top-level package is literally named "src" (imports are src.main etc.).
 where = ["."]
 include = ["src*"]
+
+[tool.setuptools.package-data]
+"src.webconf" = ["static/*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -1,0 +1,62 @@
+:root {
+  --bg: #111418; --panel: #1b2027; --line: #2c333d; --tx: #e8eaed; --muted: #8a94a3;
+  --accent: #3fb950; --danger: #f85149; --warn: #d29922;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--tx); font: 15px/1.4 system-ui, sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 16px;
+  border-bottom: 1px solid var(--line); background: var(--panel); }
+h1 { font-size: 18px; margin: 0 8px 0 0; }
+h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; }
+nav { display: flex; gap: 4px; flex: 1; }
+nav button { background: none; border-color: transparent; }
+nav button.active { background: var(--bg); border-color: var(--line); }
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.tab { display: none; }
+.tab.active { display: block; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+.big { font-size: 32px; font-weight: 700; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.stats span { display: block; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stats label { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+.muted { color: var(--muted); }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+td { padding: 4px 0; border-bottom: 1px solid var(--line); }
+td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+img#frame { width: 100%; border-radius: 4px; background: #000; min-height: 120px; display: block; }
+button { background: var(--bg); color: var(--tx); border: 1px solid var(--line); border-radius: 6px;
+  padding: 7px 12px; font: inherit; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #04150a; font-weight: 600; }
+button.danger { color: var(--danger); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.inline { font-size: 13px; color: var(--muted); font-weight: normal; margin-left: 8px; }
+.pill { font-size: 12px; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); }
+.pill.ok { color: var(--accent); border-color: var(--accent); }
+.pill.down { color: var(--danger); border-color: var(--danger); }
+fieldset { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); margin: 0 0 16px; padding: 12px 16px; }
+legend { padding: 0 6px; color: var(--muted); font-weight: 600; }
+.field { display: grid; grid-template-columns: 220px 1fr; gap: 4px 16px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.field:last-child { border-bottom: 0; }
+.field .help { grid-column: 2; color: var(--muted); font-size: 13px; }
+.field .key { color: var(--muted); font: 11px ui-monospace, monospace; }
+.field .err { grid-column: 2; color: var(--danger); font-size: 13px; }
+.field.changed label { color: var(--warn); }
+input[type=text], input[type=number], input[type=password], select {
+  width: 100%; max-width: 420px; background: var(--bg); color: var(--tx); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 8px; font: inherit; }
+input[type=color] { width: 60px; height: 32px; background: none; border: 1px solid var(--line); border-radius: 6px; }
+.savebar { position: sticky; bottom: 0; display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+  padding: 12px 0; background: var(--bg); border-top: 1px solid var(--line); }
+pre#logs { background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto;
+  max-height: 75vh; font: 12px/1.45 ui-monospace, monospace; white-space: pre-wrap; }
+@media (max-width: 640px) {
+  .field { grid-template-columns: 1fr; }
+  .field .help, .field .err { grid-column: 1; }
+  .stats span { font-size: 20px; }
+}

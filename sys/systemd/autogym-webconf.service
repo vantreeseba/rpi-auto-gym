@@ -1,0 +1,15 @@
+# User service for the web interface. Installed by scripts/install_autostart.sh,
+# which replaces the #PLACEHOLDERS#.
+[Unit]
+Description=rpi-auto-gym web interface
+After=network-online.target
+
+[Service]
+Environment=AUTOGYM_CONFIG_DIR=#CONFIG_DIR#
+WorkingDirectory=#REPO_DIR#
+ExecStart=#REPO_DIR#/scripts/webconf.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

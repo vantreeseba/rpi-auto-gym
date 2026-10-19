@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Auto Gym Admin</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Auto Gym</h1>
+    <nav>
+      <button data-tab="dashboard" class="active">Dashboard</button>
+      <button data-tab="settings">Settings</button>
+      <button data-tab="logs">Logs</button>
+    </nav>
+    <span id="status" class="pill">…</span>
+  </header>
+
+  <main>
+    <section id="tab-dashboard" class="tab active">
+      <div class="grid">
+        <div class="card">
+          <h2>Live session</h2>
+          <div class="big" id="exercise">—</div>
+          <div class="stats">
+            <div><span id="reps">0</span><label>reps</label></div>
+            <div><span id="sets">0</span><label>set</label></div>
+            <div><span id="elapsed">0:00</span><label>elapsed</label></div>
+            <div><span id="fps">0</span><label>fps</label></div>
+          </div>
+          <p class="muted" id="pose">Pose: —</p>
+          <table id="history"></table>
+          <div class="actions">
+            <button data-action="reset_session">Reset session</button>
+            <button data-action="toggle_debug">Toggle debug view</button>
+            <button data-action="restart">Restart app</button>
+            <button data-action="stop" class="danger">Stop app</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Camera <label class="inline"><input type="checkbox" id="live" checked> live</label></h2>
+          <img id="frame" alt="camera frame with pose skeleton">
+          <p class="muted" id="frame-msg"></p>
+        </div>
+        <div class="card">
+          <h2>System</h2>
+          <dl id="info"></dl>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-settings" class="tab">
+      <form id="settings-form"></form>
+      <div class="savebar">
+        <span id="save-msg" class="muted"></span>
+        <button id="save">Save</button>
+        <button id="save-restart" class="primary">Save &amp; restart app</button>
+      </div>
+    </section>
+
+    <section id="tab-logs" class="tab">
+      <div class="actions">
+        <button id="logs-refresh">Refresh</button>
+        <label class="inline"><input type="checkbox" id="logs-follow"> follow</label>
+      </div>
+      <pre id="logs"></pre>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

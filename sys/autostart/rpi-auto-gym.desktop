@@ -1,0 +1,7 @@
+# Desktop autostart entry for the app. Installed by scripts/install_autostart.sh.
+[Desktop Entry]
+Type=Application
+Name=RPI Auto Gym
+Exec=env AUTOGYM_CONFIG_DIR=#CONFIG_DIR# #REPO_DIR#/scripts/autogym.sh
+Path=#REPO_DIR#
+X-GNOME-Autostart-enabled=true

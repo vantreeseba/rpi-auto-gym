@@ -1,9 +1,11 @@
 import os
 import queue
 import sys
+import time
 import tkinter as tk
 from typing import Any, Optional, Union
 
+from .. import display
 from ._headless import FakeLabel
 from .session_protocol import SessionProtocol
 from .session_types import SessionState
@@ -56,6 +58,9 @@ class WorkoutApp:
         self._fg = cfg.get("AUTOGYM_UI_COLOR_TX")
         self._hl = cfg.get("AUTOGYM_UI_COLOR_HL")
         self._fullscreen = cfg.get_bool("AUTOGYM_UI_FULLSCREEN")
+        self._blanker = display.Blanker(cfg.get_float("AUTOGYM_DISPLAY_BLANK_SECONDS"))
+        self._blank_power_off = cfg.get("AUTOGYM_DISPLAY_BLANK_MODE") == "off"
+        self._blank_cover: Optional[tk.Frame] = None
 
         if self._headless:
             self._root: Optional[tk.Tk] = None
@@ -123,8 +128,28 @@ class WorkoutApp:
 
         for key, action in KEY_BINDINGS.items():
             root.bind(f"<KeyPress-{key}>", lambda _e, a=action: self.handle_action(a))
+        root.bind("<Key>", lambda _e: self._wake())  # any other key wakes a blank screen
+
+        # Covers the workout screen while blanked.
+        self._blank_cover = tk.Frame(root, bg="#000000", cursor="none")
+
+    def _set_blanked(self, blanked: bool) -> None:
+        if self._blank_cover is not None:
+            if blanked:
+                self._blank_cover.place(relx=0, rely=0, relwidth=1, relheight=1)
+                self._blank_cover.lift()
+            else:
+                self._blank_cover.place_forget()
+        if self._blank_power_off:
+            display.set_power(not blanked, self._cfg.get("AUTOGYM_DISPLAY_OUTPUT"))
+
+    def _wake(self) -> None:
+        if self._blanker.wake(time.monotonic()):
+            self._set_blanked(False)
+
     def handle_action(self, action: str) -> None:
         """Run a UI action from a key press or the control API."""
+        self._wake()
         if action == "toggle_debug":
             self._toggle_debug()
         elif action == "toggle_fullscreen":
@@ -157,6 +182,8 @@ class WorkoutApp:
         self._root.mainloop()
 
     def destroy(self) -> None:
+        if self._blanker.blanked:
+            self._wake()  # never leave the monitor switched off
         if self._root is not None:
             self._root.destroy()
             self._root = None
@@ -174,6 +201,9 @@ class WorkoutApp:
                 if command == "quit":
                     return
         state = self._session.get_state()
+        change = self._blanker.update(state.last_pose is not None, time.monotonic())
+        if change is not None:
+            self._set_blanked(change)
         self._update_display(state)
         if self._debug_overlay is not None and self._debug_overlay.winfo_exists():
             if state.last_frame is not None:

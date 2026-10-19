@@ -302,3 +302,23 @@ Everything. Construct a static `SessionState` instance with fixed values to driv
 - Debug overlay requires `opencv-python` to draw keypoints/lines onto the frame before converting to a `tk.PhotoImage`
 - `after(100, self._poll)` is the standard tkinter pattern for periodic updates without blocking the mainloop
 - Test on the actual RPi display early — font sizes that look fine on a desktop monitor are often too small on a 7" DSI panel
+
+---
+
+## Cross-cutting: settings, control API, web interface
+
+Modelled on zynthian (envars file + launcher loop + separate "webconf" web app).
+
+| Piece | Path | Responsibility |
+|-------|------|----------------|
+| Settings | `src/config.py` | `SETTINGS` schema, read/write `autogym_envars.sh`, typed `Config` |
+| Control API | `src/control.py` | Localhost-only HTTP API in the app: state, frame JPEG, actions |
+| Web interface | `src/webconf/` | Separate process: dashboard, settings form, logs. Stdlib only |
+| Launcher | `scripts/autogym.sh` | Restart loop driven by exit codes (0 stop, 102 restart); error screen between retries (`src/ui/error_screen.py`) |
+| Hardware | `src/hardware.py` | Detect camera/accelerators, presets, mismatch warnings |
+| Display | `src/display.py` | Rotation at start-up, blanking when nobody is in view |
+| Pi setup | `scripts/setup_pi.sh` | Fresh Pi OS → running install, hostname for `<name>.local` |
+
+Components still take plain constructor arguments; only `main.py` reads `Config`.
+To expose a new tunable, add a `Setting` to `SETTINGS` and pass it through in `main.py`.
+The web form picks it up automatically.

@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.backends.legacy:build"
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "rpi-auto-gym"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 dependencies = [
     "numpy",
     "opencv-python",
+    "Pillow",  # debug view
 ]
 
 [project.optional-dependencies]
@@ -18,6 +19,11 @@ hailo = []  # installed via system packages, see README
 
 [project.scripts]
 rpi-auto-gym = "src.main:main"
+
+[tool.setuptools.packages.find]
+# The top-level package is literally named "src" (imports are src.main etc.).
+where = ["."]
+include = ["src*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

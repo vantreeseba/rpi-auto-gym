@@ -75,3 +75,7 @@ def test_validate() -> None:
 def test_bad_number_falls_back_to_default() -> None:
     assert conf.Config({"AUTOGYM_CAMERA_INDEX": "x"}).get_int("AUTOGYM_CAMERA_INDEX") == 0
 
+
+def test_validate_threshold_order() -> None:
+    _, errors = conf.validate({"AUTOGYM_SQUAT_DOWN_ANGLE": "170", "AUTOGYM_SQUAT_UP_ANGLE": "160"})
+    assert "AUTOGYM_SQUAT_UP_ANGLE" in errors

@@ -335,3 +335,16 @@ class TestExerciseClassifier:
         assert result.exercise is None
         assert result.rep_count == 0
         assert result.set_count == 0
+
+
+class TestConfigurableThresholds:
+    def test_squat_threshold_changes_detection(self) -> None:
+        from src.classifier.exercises.squat import SquatDetector
+        from src.main import make_classifier
+        from src.config import Config
+
+        cfg = Config({"AUTOGYM_SQUAT_DOWN_ANGLE": "60", "AUTOGYM_SQUAT_UP_ANGLE": "170"})
+        classifier = make_classifier(cfg)
+        assert classifier._squat._down == 60.0
+        assert classifier._squat._up == 170.0
+        assert SquatDetector()._down == 120.0  # default unchanged

@@ -61,6 +61,16 @@ SETTINGS: List[Setting] = [
     # Classifier
     Setting("AUTOGYM_SET_PAUSE_SECONDS", "Workout", "Set pause (s)", "3.0", "float",
             help="Seconds without a rep before the current set is counted as finished."),
+    Setting("AUTOGYM_SQUAT_DOWN_ANGLE", "Workout", "Squat: down angle", "120", "float",
+            help="Average knee angle (degrees) below which you count as squatting down."),
+    Setting("AUTOGYM_SQUAT_UP_ANGLE", "Workout", "Squat: up angle", "160", "float",
+            help="Knee angle above which you count as standing again (completes the rep)."),
+    Setting("AUTOGYM_PUSHUP_DOWN_ANGLE", "Workout", "Push-up: down angle", "90", "float",
+            help="Average elbow angle (degrees) below which you count as lowered."),
+    Setting("AUTOGYM_PUSHUP_UP_ANGLE", "Workout", "Push-up: up angle", "150", "float",
+            help="Elbow angle above which your arms count as straight (completes the rep)."),
+    Setting("AUTOGYM_JJ_MIN_CONFIDENCE", "Workout", "Jumping jack: min confidence", "0.3", "float",
+            help="Frames where a wrist, shoulder or hip is less certain than this are ignored (0.0 to 1.0)."),
     # UI
     Setting("AUTOGYM_UI_FULLSCREEN", "Display", "Fullscreen", "1", "bool",
             help="Turn off to run in a window on a desktop (dev / emulator mode)."),
@@ -92,6 +102,12 @@ SETTINGS: List[Setting] = [
 ]
 
 SETTINGS_BY_KEY: Dict[str, Setting] = {s.key: s for s in SETTINGS}
+
+# (lower, higher) settings that must stay in that order.
+_ORDERED_PAIRS = [
+    ("AUTOGYM_SQUAT_DOWN_ANGLE", "AUTOGYM_SQUAT_UP_ANGLE"),
+    ("AUTOGYM_PUSHUP_DOWN_ANGLE", "AUTOGYM_PUSHUP_UP_ANGLE"),
+]
 
 _LINE_RE = re.compile(r"^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
 _TRUE = {"1", "true", "yes", "on"}
@@ -207,6 +223,10 @@ def validate(updates: Dict[str, Any]) -> Tuple[Dict[str, str], Dict[str, str]]:
             errors[key] = msg if "must" in msg else f"expected {s.type}"
             continue
         clean[key] = v
+    for low, high in _ORDERED_PAIRS:
+        if low in clean and high in clean and float(clean[low]) >= float(clean[high]):
+            errors[high] = f"must be greater than {SETTINGS_BY_KEY[low].label.lower()}"
+            clean.pop(high)
     return clean, errors
 
 

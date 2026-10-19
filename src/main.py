@@ -21,6 +21,9 @@ from typing import List, Optional
 
 from .camera.factory import make_camera
 from .classifier.classifier import ExerciseClassifier
+from .classifier.exercises.jumping_jack import JumpingJackDetector
+from .classifier.exercises.pushup import PushupDetector
+from .classifier.exercises.squat import SquatDetector
 from .config import EXIT_ERROR, Config, envars_path, repo_dir, setup_logging
 from .control import AppControl, start_control_server
 from .pose.factory import make_estimator
@@ -79,8 +82,16 @@ def make_components(cfg: Config):
         model_path=_resolve(cfg.get("AUTOGYM_POSE_MODEL_PATH")),
         min_confidence=cfg.get_float("AUTOGYM_POSE_MIN_CONFIDENCE"),
     )
-    classifier = ExerciseClassifier(set_pause_seconds=cfg.get_float("AUTOGYM_SET_PAUSE_SECONDS"))
-    return camera, estimator, classifier
+    return camera, estimator, make_classifier(cfg)
+
+
+def make_classifier(cfg: Config) -> ExerciseClassifier:
+    return ExerciseClassifier(
+        set_pause_seconds=cfg.get_float("AUTOGYM_SET_PAUSE_SECONDS"),
+        squat=SquatDetector(cfg.get_float("AUTOGYM_SQUAT_DOWN_ANGLE"), cfg.get_float("AUTOGYM_SQUAT_UP_ANGLE")),
+        pushup=PushupDetector(cfg.get_float("AUTOGYM_PUSHUP_DOWN_ANGLE"), cfg.get_float("AUTOGYM_PUSHUP_UP_ANGLE")),
+        jumping_jack=JumpingJackDetector(cfg.get_float("AUTOGYM_JJ_MIN_CONFIDENCE")),
+    )
 
 
 def capture_loop(camera, estimator, classifier, session, control: AppControl) -> None:

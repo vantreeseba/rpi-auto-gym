@@ -4,12 +4,10 @@ _MISSING_KEYPOINT = Keypoint(x=0.0, y=0.0, confidence=0.0)
 _MIN_CONFIDENCE = 0.3
 
 
-def _is_visible(kp: Keypoint) -> bool:
-    return kp.confidence >= _MIN_CONFIDENCE
-
-
 class JumpingJackDetector:
-    def __init__(self) -> None:
+    def __init__(self, min_confidence: float = _MIN_CONFIDENCE) -> None:
+        """Ignores frames where any wrist, shoulder or hip is below ``min_confidence``."""
+        self._min_confidence = min_confidence
         self._phase = "closed"
 
     def update(self, pose: Pose) -> tuple[str, bool]:
@@ -23,7 +21,7 @@ class JumpingJackDetector:
         left_hip = kp.get("left_hip", _MISSING_KEYPOINT)
         right_hip = kp.get("right_hip", _MISSING_KEYPOINT)
 
-        all_visible = all(_is_visible(k) for k in (
+        all_visible = all(k.confidence >= self._min_confidence for k in (
             left_wrist, right_wrist, left_shoulder, right_shoulder, left_hip, right_hip
         ))
 

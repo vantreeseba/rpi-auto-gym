@@ -7,7 +7,11 @@ _MISSING_KEYPOINT = Keypoint(x=0.0, y=0.0, confidence=0.0)
 
 
 class PushupDetector:
-    def __init__(self) -> None:
+    def __init__(self, down_threshold: float = _ELBOW_DOWN_THRESHOLD,
+                 up_threshold: float = _ELBOW_UP_THRESHOLD) -> None:
+        """Thresholds are elbow angles in degrees: below ``down`` = lowered, above ``up`` = arms straight."""
+        self._down = down_threshold
+        self._up = up_threshold
         self._phase = "up"
 
     def update(self, pose: Pose) -> tuple[str, bool]:
@@ -27,11 +31,11 @@ class PushupDetector:
 
         avg_elbow_angle = (left_elbow_angle + right_elbow_angle) / 2.0
 
-        if self._phase == "up" and avg_elbow_angle < _ELBOW_DOWN_THRESHOLD:
+        if self._phase == "up" and avg_elbow_angle < self._down:
             self._phase = "down"
             return self._phase, False
 
-        if self._phase == "down" and avg_elbow_angle > _ELBOW_UP_THRESHOLD:
+        if self._phase == "down" and avg_elbow_angle > self._up:
             self._phase = "up"
             return self._phase, True
 

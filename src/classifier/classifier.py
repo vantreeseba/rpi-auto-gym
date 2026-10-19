@@ -9,11 +9,18 @@ from .exercises.jumping_jack import JumpingJackDetector
 
 
 class ExerciseClassifier:
-    def __init__(self, set_pause_seconds: float = 3.0) -> None:
+    def __init__(
+        self,
+        set_pause_seconds: float = 3.0,
+        squat: Optional[SquatDetector] = None,
+        pushup: Optional[PushupDetector] = None,
+        jumping_jack: Optional[JumpingJackDetector] = None,
+    ) -> None:
+        """Pass configured detectors to change their thresholds; defaults are used otherwise."""
         self._set_pause_seconds = set_pause_seconds
-        self._squat = SquatDetector()
-        self._pushup = PushupDetector()
-        self._jumping_jack = JumpingJackDetector()
+        self._squat = squat or SquatDetector()
+        self._pushup = pushup or PushupDetector()
+        self._jumping_jack = jumping_jack or JumpingJackDetector()
 
         self._active_exercise: Optional[str] = None
         self._active_phase: Optional[str] = None
